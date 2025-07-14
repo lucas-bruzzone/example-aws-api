@@ -14,6 +14,26 @@ output "api_gateway_execution_arn" {
 }
 
 output "api_gateway_url" {
-  description = "URL base do API Gateway (sem stage)"
-  value       = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com"
+  description = "URL completa do API Gateway"
+  value       = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}"
+}
+
+output "validate_endpoint" {
+  description = "Endpoint /validate completo"
+  value       = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/validate"
+}
+
+output "cognito_user_pool_id" {
+  description = "ID do Cognito User Pool"
+  value       = aws_cognito_user_pool.main.id
+}
+
+output "cognito_client_id" {
+  description = "ID do Cognito App Client"
+  value       = aws_cognito_user_pool_client.main.id
+}
+
+output "cognito_region" {
+  description = "Região do Cognito"
+  value       = var.aws_region
 }

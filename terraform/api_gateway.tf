@@ -1,3 +1,39 @@
+# Cognito User Pool
+resource "aws_cognito_user_pool" "main" {
+  name = "${var.project_name}-users"
+
+  password_policy {
+    minimum_length    = 8
+    require_lowercase = true
+    require_numbers   = true
+    require_symbols   = false
+    require_uppercase = true
+  }
+
+  auto_verified_attributes = ["email"]
+}
+
+# Cognito User Pool Client
+resource "aws_cognito_user_pool_client" "main" {
+  name         = "${var.project_name}-app"
+  user_pool_id = aws_cognito_user_pool.main.id
+
+  explicit_auth_flows = [
+    "ALLOW_USER_PASSWORD_AUTH",
+    "ALLOW_REFRESH_TOKEN_AUTH"
+  ]
+
+  generate_secret = false
+}
+
+# API Gateway Authorizer
+resource "aws_api_gateway_authorizer" "cognito" {
+  name          = "${var.project_name}-cognito-authorizer"
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  type          = "COGNITO_USER_POOLS"
+  provider_arns = [aws_cognito_user_pool.main.arn]
+}
+
 # API Gateway REST
 resource "aws_api_gateway_rest_api" "main" {
   name        = "${var.project_name}-api"
@@ -20,7 +56,8 @@ resource "aws_api_gateway_method" "validate_post" {
   rest_api_id   = aws_api_gateway_rest_api.main.id
   resource_id   = aws_api_gateway_resource.validate.id
   http_method   = "POST"
-  authorization = "NONE"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito.id
 }
 
 # Integração com Lambda
