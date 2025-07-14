@@ -150,6 +150,7 @@ resource "aws_api_gateway_deployment" "main" {
       aws_api_gateway_method.validate_options.id,
       aws_api_gateway_integration.validate_lambda.id,
       aws_api_gateway_integration.validate_options.id,
+      timestamp()
     ]))
   }
 
