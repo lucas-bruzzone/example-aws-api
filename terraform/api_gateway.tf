@@ -1,7 +1,3 @@
-# ===================================
-# COGNITO CONFIGURATION
-# ===================================
-
 # Cognito User Pool
 resource "aws_cognito_user_pool" "main" {
   name = "${var.project_name}-users"
@@ -465,6 +461,7 @@ resource "aws_api_gateway_deployment" "main" {
       aws_api_gateway_integration.properties_id_put_lambda.id,
       aws_api_gateway_integration.properties_id_delete_lambda.id,
       aws_api_gateway_integration.properties_id_options.id,
+
     ]))
   }
 
