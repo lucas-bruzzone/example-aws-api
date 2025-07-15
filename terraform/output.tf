@@ -1,3 +1,7 @@
+# ===================================
+# API GATEWAY OUTPUTS
+# ===================================
+
 output "api_gateway_id" {
   description = "ID do API Gateway"
   value       = aws_api_gateway_rest_api.main.id
@@ -18,10 +22,60 @@ output "api_gateway_url" {
   value       = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}"
 }
 
+# ===================================
+# ENDPOINTS ESPECÍFICOS
+# ===================================
+
 output "validate_endpoint" {
   description = "Endpoint /validate completo"
   value       = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/validate"
 }
+
+output "properties_endpoint" {
+  description = "Endpoint /properties completo"
+  value       = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/properties"
+}
+
+output "properties_id_endpoint" {
+  description = "Endpoint /properties/{id} completo"
+  value       = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/properties/{id}"
+}
+
+# ===================================
+# MAPA DE TODOS OS ENDPOINTS
+# ===================================
+
+output "all_endpoints" {
+  description = "Lista de todos os endpoints disponíveis"
+  value = {
+    validate           = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/validate"
+    properties         = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/properties"
+    properties_with_id = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/properties/{id}"
+  }
+}
+
+output "endpoints_by_method" {
+  description = "Endpoints organizados por método HTTP"
+  value = {
+    GET = [
+      "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/properties"
+    ]
+    POST = [
+      "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/validate",
+      "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/properties"
+    ]
+    PUT = [
+      "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/properties/{id}"
+    ]
+    DELETE = [
+      "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/properties/{id}"
+    ]
+  }
+}
+
+# ===================================
+# COGNITO OUTPUTS
+# ===================================
 
 output "cognito_user_pool_id" {
   description = "ID do Cognito User Pool"
@@ -36,4 +90,39 @@ output "cognito_client_id" {
 output "cognito_region" {
   description = "Região do Cognito"
   value       = var.aws_region
+}
+
+output "cognito_user_pool_arn" {
+  description = "ARN do Cognito User Pool"
+  value       = aws_cognito_user_pool.main.arn
+}
+
+# ===================================
+# INFORMAÇÕES DE INTEGRAÇÃO
+# ===================================
+
+output "lambda_integration_info" {
+  description = "Informações da integração com Lambda"
+  value = {
+    lambda_function_name = data.terraform_remote_state.lambda.outputs.lambda_function_name
+    lambda_invoke_arn    = data.terraform_remote_state.lambda.outputs.lambda_invoke_arn
+  }
+}
+
+# ===================================
+# RESUMO DA API
+# ===================================
+
+output "api_summary" {
+  description = "Resumo completo da API"
+  value = {
+    api_name        = "${var.project_name}-api"
+    environment     = var.environment
+    region          = var.aws_region
+    base_url        = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}"
+    authentication  = "AWS Cognito User Pools"
+    cors_enabled    = true
+    total_endpoints = 6 # validate + 5 properties endpoints
+    lambda_backend  = data.terraform_remote_state.lambda.outputs.lambda_function_name
+  }
 }
