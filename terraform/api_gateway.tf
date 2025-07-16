@@ -12,7 +12,7 @@ resource "aws_cognito_user_pool" "main" {
 
   # MFA Configuration
   mfa_configuration = "OPTIONAL"
-  
+
   software_token_mfa_configuration {
     enabled = true
   }
@@ -108,15 +108,15 @@ resource "aws_cognito_identity_provider" "google" {
   provider_type = "Google"
 
   provider_details = {
-    client_id                = var.google_client_id
-    client_secret            = var.google_client_secret
-    authorize_scopes         = "email openid profile"
-    attributes_url           = "https://people.googleapis.com/v1/people/me?personFields="
+    client_id                     = var.google_client_id
+    client_secret                 = var.google_client_secret
+    authorize_scopes              = "email openid profile"
+    attributes_url                = "https://people.googleapis.com/v1/people/me?personFields="
     attributes_url_add_attributes = "true"
-    authorize_url            = "https://accounts.google.com/o/oauth2/v2/auth"
-    oidc_issuer              = "https://accounts.google.com"
-    token_request_method     = "POST"
-    token_url                = "https://www.googleapis.com/oauth2/v4/token"
+    authorize_url                 = "https://accounts.google.com/o/oauth2/v2/auth"
+    oidc_issuer                   = "https://accounts.google.com"
+    token_request_method          = "POST"
+    token_url                     = "https://www.googleapis.com/oauth2/v4/token"
   }
 
   attribute_mapping = {
