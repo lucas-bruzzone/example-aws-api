@@ -6,6 +6,7 @@ data "terraform_remote_state" "lambda" {
     region = "us-east-1"
   }
 }
+
 # Data source para pegar CloudFront domain
 data "terraform_remote_state" "cloudfront" {
   backend = "s3"
@@ -16,13 +17,12 @@ data "terraform_remote_state" "cloudfront" {
   }
 }
 
-# Locals para URLs dinâmicas
+# Locals para URLs dinâmicas - FIXED: Removed 127.0.0.1 to avoid Cognito HTTP error
 locals {
+  # URLs de desenvolvimento - usando apenas localhost (Cognito permite HTTP com localhost)
   dev_urls = [
     "http://localhost:3000",
-    "http://localhost:5500",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:5500"
+    "http://localhost:5500"
   ]
 
   callback_paths = ["/callback", "/callback.html"]
