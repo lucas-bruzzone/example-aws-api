@@ -1,4 +1,3 @@
-# Cognito User Pool com MFA e políticas
 resource "aws_cognito_user_pool" "main" {
   name = "${var.project_name}-users"
 

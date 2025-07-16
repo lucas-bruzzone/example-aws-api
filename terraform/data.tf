@@ -6,7 +6,6 @@ data "terraform_remote_state" "lambda" {
     region = "us-east-1"
   }
 }
-
 # Data source para pegar CloudFront domain
 data "terraform_remote_state" "cloudfront" {
   backend = "s3"
