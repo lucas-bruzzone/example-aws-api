@@ -74,11 +74,16 @@ resource "aws_cognito_user_pool_client" "main" {
 
   callback_urls = [
     "http://localhost:3000/callback",
-    var.domain_name != "" ? "https://${var.domain_name}/callback" : "https://${replace(var.project_name, "aws", "cloud")}-${var.environment}-website.s3-website-${var.aws_region}.amazonaws.com/callback"
+    "http://localhost:3000/callback.html",
+    "http://localhost:5500/callback",
+    "http://localhost:5500/callback.html",
+    var.domain_name != "" ? "https://${var.domain_name}/callback" : "https://${replace(var.project_name, "aws", "cloud")}-${var.environment}-website.s3-website-${var.aws_region}.amazonaws.com/callback",
+    var.domain_name != "" ? "https://${var.domain_name}/callback.html" : "https://${replace(var.project_name, "aws", "cloud")}-${var.environment}-website.s3-website-${var.aws_region}.amazonaws.com/callback.html"
   ]
 
   logout_urls = [
     "http://localhost:3000/",
+    "http://localhost:5500/",
     var.domain_name != "" ? "https://${var.domain_name}/" : "https://${replace(var.project_name, "aws", "cloud")}-${var.environment}-website.s3-website-${var.aws_region}.amazonaws.com/"
   ]
 
