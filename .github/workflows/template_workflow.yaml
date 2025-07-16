@@ -46,12 +46,18 @@ jobs:
         terraform validate
 
     - name: Terraform Plan
+      env:
+        TF_VAR_google_client_id: ${{ secrets.GOOGLE_CLIENT_ID }}
+        TF_VAR_google_client_secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
       run: |
         cd terraform
         terraform plan -var-file="tfvars/devops.tfvars" -no-color
       
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      env:
+        TF_VAR_google_client_id: ${{ secrets.GOOGLE_CLIENT_ID }}
+        TF_VAR_google_client_secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
       run: |
         cd terraform
         terraform apply -var-file="tfvars/devops.tfvars" -auto-approve -no-color
