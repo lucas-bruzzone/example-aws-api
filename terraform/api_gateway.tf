@@ -74,12 +74,12 @@ resource "aws_cognito_user_pool_client" "main" {
 
   callback_urls = [
     "http://localhost:3000/callback",
-    var.domain_name != "" ? "https://${var.domain_name}/callback" : "https://${var.project_name}-${var.environment}-website.s3-website-${var.aws_region}.amazonaws.com/callback"
+    var.domain_name != "" ? "https://${var.domain_name}/callback" : "https://${replace(var.project_name, "aws", "cloud")}-${var.environment}-website.s3-website-${var.aws_region}.amazonaws.com/callback"
   ]
 
   logout_urls = [
     "http://localhost:3000/",
-    var.domain_name != "" ? "https://${var.domain_name}/" : "https://${var.project_name}-${var.environment}-website.s3-website-${var.aws_region}.amazonaws.com/"
+    var.domain_name != "" ? "https://${var.domain_name}/" : "https://${replace(var.project_name, "aws", "cloud")}-${var.environment}-website.s3-website-${var.aws_region}.amazonaws.com/"
   ]
 
   allowed_oauth_flows_user_pool_client = true
@@ -128,7 +128,7 @@ resource "aws_cognito_identity_provider" "google" {
 
 # Cognito User Pool Domain
 resource "aws_cognito_user_pool_domain" "main" {
-  domain       = "${var.project_name}-${var.environment}-auth"
+  domain       = "${replace(var.project_name, "aws", "cloud")}-${var.environment}-auth"
   user_pool_id = aws_cognito_user_pool.main.id
 }
 
