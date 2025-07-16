@@ -1,4 +1,4 @@
-# Cognito User Pool
+# Cognito User Pool com MFA e políticas
 resource "aws_cognito_user_pool" "main" {
   name = "${var.project_name}-users"
 
@@ -10,7 +10,50 @@ resource "aws_cognito_user_pool" "main" {
     require_uppercase = true
   }
 
+  # MFA Configuration
+  mfa_configuration = "OPTIONAL"
+
+  software_token_mfa_configuration {
+    enabled = true
+  }
+
+  # Account Recovery
+  account_recovery_setting {
+    recovery_mechanism {
+      name     = "verified_email"
+      priority = 1
+    }
+  }
+
+  # Device Configuration
+  device_configuration {
+    challenge_required_on_new_device      = true
+    device_only_remembered_on_user_prompt = true
+  }
+
+  # User Pool Add-ons
+  user_pool_add_ons {
+    advanced_security_mode = "ENFORCED"
+  }
+
   auto_verified_attributes = ["email"]
+
+  # Username Configuration (allow email as username)
+  username_attributes = ["email"]
+
+  # User Attribute Update Settings
+  user_attribute_update_settings {
+    attributes_require_verification_before_update = ["email"]
+  }
+
+  # Email Configuration
+  email_configuration {
+    email_sending_account = "COGNITO_DEFAULT"
+  }
+
+  tags = {
+    Name = "${var.project_name}-user-pool"
+  }
 }
 
 # Cognito User Pool Client
@@ -20,10 +63,101 @@ resource "aws_cognito_user_pool_client" "main" {
 
   explicit_auth_flows = [
     "ALLOW_USER_PASSWORD_AUTH",
-    "ALLOW_REFRESH_TOKEN_AUTH"
+    "ALLOW_REFRESH_TOKEN_AUTH",
+    "ALLOW_USER_SRP_AUTH"
   ]
 
   generate_secret = false
+
+  # OAuth Settings for Social Login
+  supported_identity_providers = ["COGNITO", "Google"]
+
+  callback_urls = [
+    "http://localhost:3000/callback",
+    var.domain_name != "" ? "https://${var.domain_name}/callback" : "https://${var.project_name}-${var.environment}-website.s3-website-${var.aws_region}.amazonaws.com/callback"
+  ]
+
+  logout_urls = [
+    "http://localhost:3000/",
+    var.domain_name != "" ? "https://${var.domain_name}/" : "https://${var.project_name}-${var.environment}-website.s3-website-${var.aws_region}.amazonaws.com/"
+  ]
+
+  allowed_oauth_flows_user_pool_client = true
+  allowed_oauth_flows                  = ["code"]
+  allowed_oauth_scopes                 = ["email", "openid", "profile"]
+
+  # Token Validity
+  access_token_validity  = 1  # 1 hour
+  id_token_validity      = 1  # 1 hour
+  refresh_token_validity = 30 # 30 days
+
+  token_validity_units {
+    access_token  = "hours"
+    id_token      = "hours"
+    refresh_token = "days"
+  }
+
+  # Prevent User Existence Errors
+  prevent_user_existence_errors = "ENABLED"
+}
+
+# Google Identity Provider
+resource "aws_cognito_identity_provider" "google" {
+  user_pool_id  = aws_cognito_user_pool.main.id
+  provider_name = "Google"
+  provider_type = "Google"
+
+  provider_details = {
+    client_id                     = var.google_client_id
+    client_secret                 = var.google_client_secret
+    authorize_scopes              = "email openid profile"
+    attributes_url                = "https://people.googleapis.com/v1/people/me?personFields="
+    attributes_url_add_attributes = "true"
+    authorize_url                 = "https://accounts.google.com/o/oauth2/v2/auth"
+    oidc_issuer                   = "https://accounts.google.com"
+    token_request_method          = "POST"
+    token_url                     = "https://www.googleapis.com/oauth2/v4/token"
+  }
+
+  attribute_mapping = {
+    email    = "email"
+    username = "sub"
+    name     = "name"
+  }
+}
+
+# Cognito User Pool Domain
+resource "aws_cognito_user_pool_domain" "main" {
+  domain       = "${var.project_name}-${var.environment}-auth"
+  user_pool_id = aws_cognito_user_pool.main.id
+}
+
+# Risk Configuration (Advanced Security Features)
+resource "aws_cognito_risk_configuration" "main" {
+  user_pool_id = aws_cognito_user_pool.main.id
+
+  compromised_credentials_risk_configuration {
+    actions {
+      event_action = "BLOCK"
+    }
+  }
+
+  account_takeover_risk_configuration {
+    actions {
+      high_action {
+        event_action = "MFA_REQUIRED"
+        notify       = true
+      }
+      medium_action {
+        event_action = "MFA_REQUIRED"
+        notify       = true
+      }
+      low_action {
+        event_action = "NO_ACTION"
+        notify       = false
+      }
+    }
+  }
 }
 
 # API Gateway Authorizer
@@ -431,6 +565,9 @@ resource "aws_api_gateway_deployment" "main" {
     aws_api_gateway_integration.properties_id_options,
     aws_api_gateway_method_response.properties_id_options,
     aws_api_gateway_integration_response.properties_id_options,
+
+    # Google Identity Provider
+    aws_cognito_identity_provider.google,
   ]
 
   rest_api_id = aws_api_gateway_rest_api.main.id
@@ -462,6 +599,8 @@ resource "aws_api_gateway_deployment" "main" {
       aws_api_gateway_integration.properties_id_delete_lambda.id,
       aws_api_gateway_integration.properties_id_options.id,
 
+      # Identity Provider
+      aws_cognito_identity_provider.google.id,
     ]))
   }
 
