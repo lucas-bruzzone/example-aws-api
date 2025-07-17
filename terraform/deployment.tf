@@ -26,6 +26,14 @@ resource "aws_lambda_permission" "api_gateway_properties_id" {
   source_arn    = "${aws_api_gateway_rest_api.main.execution_arn}/*/properties/*"
 }
 
+resource "aws_lambda_permission" "api_gateway_properties_report" {
+  statement_id  = "AllowExecutionFromAPIGatewayPropertiesReport"
+  action        = "lambda:InvokeFunction"
+  function_name = data.terraform_remote_state.lambda.outputs.lambda_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.main.execution_arn}/*/properties/report"
+}
+
 # ===================================
 # DEPLOYMENT & STAGE
 # ===================================
@@ -53,6 +61,14 @@ resource "aws_api_gateway_deployment" "main" {
     aws_api_gateway_method_response.properties_id_options,
     aws_api_gateway_integration_response.properties_id_options,
 
+    # Recursos /properties/report
+    aws_api_gateway_method.properties_report_post,
+    aws_api_gateway_method.properties_report_options,
+    aws_api_gateway_integration.properties_report_post_lambda,
+    aws_api_gateway_integration.properties_report_options,
+    aws_api_gateway_method_response.properties_report_options,
+    aws_api_gateway_integration_response.properties_report_options,
+
     # Google Identity Provider
     aws_cognito_identity_provider.google,
   ]
@@ -78,6 +94,13 @@ resource "aws_api_gateway_deployment" "main" {
       aws_api_gateway_integration.properties_id_put_lambda.id,
       aws_api_gateway_integration.properties_id_delete_lambda.id,
       aws_api_gateway_integration.properties_id_options.id,
+
+      # Recursos /properties/report
+      aws_api_gateway_resource.properties_report.id,
+      aws_api_gateway_method.properties_report_post.id,
+      aws_api_gateway_method.properties_report_options.id,
+      aws_api_gateway_integration.properties_report_post_lambda.id,
+      aws_api_gateway_integration.properties_report_options.id,
 
       # Identity Provider
       aws_cognito_identity_provider.google.id,

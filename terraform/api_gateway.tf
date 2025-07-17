@@ -21,6 +21,7 @@ resource "aws_api_gateway_authorizer" "cognito" {
   type          = "COGNITO_USER_POOLS"
   provider_arns = [aws_cognito_user_pool.main.arn]
 }
+
 # ===================================
 # RECURSOS (/properties)
 # ===================================
@@ -35,6 +36,12 @@ resource "aws_api_gateway_resource" "properties_id" {
   rest_api_id = aws_api_gateway_rest_api.main.id
   parent_id   = aws_api_gateway_resource.properties.id
   path_part   = "{id}"
+}
+
+resource "aws_api_gateway_resource" "properties_report" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_resource.properties.id
+  path_part   = "report"
 }
 
 # ===================================
@@ -100,6 +107,25 @@ resource "aws_api_gateway_method" "properties_id_options" {
 }
 
 # ===================================
+# MÉTODOS PARA /properties/report
+# ===================================
+
+resource "aws_api_gateway_method" "properties_report_post" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.properties_report.id
+  http_method   = "POST"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito.id
+}
+
+resource "aws_api_gateway_method" "properties_report_options" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.properties_report.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+# ===================================
 # INTEGRAÇÕES LAMBDA PARA /properties
 # ===================================
 
@@ -152,6 +178,20 @@ resource "aws_api_gateway_integration" "properties_id_delete_lambda" {
 }
 
 # ===================================
+# INTEGRAÇÃO LAMBDA PARA /properties/report
+# ===================================
+
+resource "aws_api_gateway_integration" "properties_report_post_lambda" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_report.id
+  http_method = aws_api_gateway_method.properties_report_post.http_method
+
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = data.terraform_remote_state.lambda.outputs.lambda_invoke_arn
+}
+
+# ===================================
 # INTEGRAÇÕES CORS
 # ===================================
 
@@ -172,6 +212,19 @@ resource "aws_api_gateway_integration" "properties_id_options" {
   rest_api_id = aws_api_gateway_rest_api.main.id
   resource_id = aws_api_gateway_resource.properties_id.id
   http_method = aws_api_gateway_method.properties_id_options.http_method
+  type        = "MOCK"
+
+  request_templates = {
+    "application/json" = jsonencode({
+      statusCode = 200
+    })
+  }
+}
+
+resource "aws_api_gateway_integration" "properties_report_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_report.id
+  http_method = aws_api_gateway_method.properties_report_options.http_method
   type        = "MOCK"
 
   request_templates = {
@@ -211,6 +264,19 @@ resource "aws_api_gateway_method_response" "properties_id_options" {
   }
 }
 
+resource "aws_api_gateway_method_response" "properties_report_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_report.id
+  http_method = aws_api_gateway_method.properties_report_options.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
 # ===================================
 # INTEGRATION RESPONSES CORS
 # ===================================
@@ -237,6 +303,19 @@ resource "aws_api_gateway_integration_response" "properties_id_options" {
   response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
     "method.response.header.Access-Control-Allow-Methods" = "'PUT,DELETE,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+}
+
+resource "aws_api_gateway_integration_response" "properties_report_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_report.id
+  http_method = aws_api_gateway_method.properties_report_options.http_method
+  status_code = aws_api_gateway_method_response.properties_report_options.status_code
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'POST,OPTIONS'"
     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
 }
