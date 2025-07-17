@@ -17,7 +17,6 @@ data "terraform_remote_state" "cloudfront" {
   }
 }
 
-# Locals para URLs dinâmicas - FIXED: Removed 127.0.0.1 to avoid Cognito HTTP error
 locals {
   # URLs de desenvolvimento - usando apenas localhost (Cognito permite HTTP com localhost)
   dev_urls = [

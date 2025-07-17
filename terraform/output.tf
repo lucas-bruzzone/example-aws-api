@@ -26,11 +26,6 @@ output "api_gateway_url" {
 # ENDPOINTS ESPECÍFICOS
 # ===================================
 
-output "validate_endpoint" {
-  description = "Endpoint /validate completo"
-  value       = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/validate"
-}
-
 output "properties_endpoint" {
   description = "Endpoint /properties completo"
   value       = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/properties"
@@ -39,38 +34,6 @@ output "properties_endpoint" {
 output "properties_id_endpoint" {
   description = "Endpoint /properties/{id} completo"
   value       = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/properties/{id}"
-}
-
-# ===================================
-# MAPA DE TODOS OS ENDPOINTS
-# ===================================
-
-output "all_endpoints" {
-  description = "Lista de todos os endpoints disponíveis"
-  value = {
-    validate           = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/validate"
-    properties         = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/properties"
-    properties_with_id = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/properties/{id}"
-  }
-}
-
-output "endpoints_by_method" {
-  description = "Endpoints organizados por método HTTP"
-  value = {
-    GET = [
-      "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/properties"
-    ]
-    POST = [
-      "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/validate",
-      "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/properties"
-    ]
-    PUT = [
-      "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/properties/{id}"
-    ]
-    DELETE = [
-      "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/properties/{id}"
-    ]
-  }
 }
 
 # ===================================
@@ -122,7 +85,7 @@ output "api_summary" {
     base_url        = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}"
     authentication  = "AWS Cognito User Pools"
     cors_enabled    = true
-    total_endpoints = 6 # validate + 5 properties endpoints
+    total_endpoints = 6 # 5 properties endpoints
     lambda_backend  = data.terraform_remote_state.lambda.outputs.lambda_function_name
   }
 }

@@ -32,13 +32,6 @@ resource "aws_lambda_permission" "api_gateway_properties_id" {
 
 resource "aws_api_gateway_deployment" "main" {
   depends_on = [
-    # Recursos /validate
-    aws_api_gateway_method.validate_post,
-    aws_api_gateway_method.validate_options,
-    aws_api_gateway_integration.validate_lambda,
-    aws_api_gateway_integration.validate_options,
-    aws_api_gateway_method_response.validate_options,
-    aws_api_gateway_integration_response.validate_options,
 
     # Recursos /properties
     aws_api_gateway_method.properties_post,
@@ -68,13 +61,6 @@ resource "aws_api_gateway_deployment" "main" {
 
   triggers = {
     redeployment = sha1(jsonencode([
-      # Recursos existentes
-      aws_api_gateway_resource.validate.id,
-      aws_api_gateway_method.validate_post.id,
-      aws_api_gateway_method.validate_options.id,
-      aws_api_gateway_integration.validate_lambda.id,
-      aws_api_gateway_integration.validate_options.id,
-
       # Recursos /properties
       aws_api_gateway_resource.properties.id,
       aws_api_gateway_method.properties_post.id,
