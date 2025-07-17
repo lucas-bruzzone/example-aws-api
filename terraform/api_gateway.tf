@@ -192,7 +192,7 @@ resource "aws_api_gateway_integration" "properties_report_post_lambda" {
 }
 
 # ===================================
-# INTEGRAÇÕES CORS
+# INTEGRAÇÕES CORS (OPTIONS)
 # ===================================
 
 resource "aws_api_gateway_integration" "properties_options" {
@@ -235,7 +235,7 @@ resource "aws_api_gateway_integration" "properties_report_options" {
 }
 
 # ===================================
-# RESPONSES CORS
+# METHOD RESPONSES - CORS (OPTIONS)
 # ===================================
 
 resource "aws_api_gateway_method_response" "properties_options" {
@@ -278,7 +278,66 @@ resource "aws_api_gateway_method_response" "properties_report_options" {
 }
 
 # ===================================
-# INTEGRATION RESPONSES CORS
+# METHOD RESPONSES - CORS (MÉTODOS PRINCIPAIS)
+# ===================================
+
+resource "aws_api_gateway_method_response" "properties_get_200" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties.id
+  http_method = aws_api_gateway_method.properties_get.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = true
+  }
+}
+
+resource "aws_api_gateway_method_response" "properties_post_200" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties.id
+  http_method = aws_api_gateway_method.properties_post.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = true
+  }
+}
+
+resource "aws_api_gateway_method_response" "properties_id_put_200" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_id.id
+  http_method = aws_api_gateway_method.properties_id_put.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = true
+  }
+}
+
+resource "aws_api_gateway_method_response" "properties_id_delete_200" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_id.id
+  http_method = aws_api_gateway_method.properties_id_delete.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = true
+  }
+}
+
+resource "aws_api_gateway_method_response" "properties_report_post_200" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_report.id
+  http_method = aws_api_gateway_method.properties_report_post.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = true
+  }
+}
+
+# ===================================
+# INTEGRATION RESPONSES - CORS (OPTIONS)
 # ===================================
 
 resource "aws_api_gateway_integration_response" "properties_options" {
@@ -318,4 +377,73 @@ resource "aws_api_gateway_integration_response" "properties_report_options" {
     "method.response.header.Access-Control-Allow-Methods" = "'POST,OPTIONS'"
     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
+}
+
+# ===================================
+# INTEGRATION RESPONSES - CORS (MÉTODOS PRINCIPAIS)
+# ===================================
+
+resource "aws_api_gateway_integration_response" "properties_get_200" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties.id
+  http_method = aws_api_gateway_method.properties_get.http_method
+  status_code = aws_api_gateway_method_response.properties_get_200.status_code
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.properties_get_lambda]
+}
+
+resource "aws_api_gateway_integration_response" "properties_post_200" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties.id
+  http_method = aws_api_gateway_method.properties_post.http_method
+  status_code = aws_api_gateway_method_response.properties_post_200.status_code
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.properties_post_lambda]
+}
+
+resource "aws_api_gateway_integration_response" "properties_id_put_200" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_id.id
+  http_method = aws_api_gateway_method.properties_id_put.http_method
+  status_code = aws_api_gateway_method_response.properties_id_put_200.status_code
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.properties_id_put_lambda]
+}
+
+resource "aws_api_gateway_integration_response" "properties_id_delete_200" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_id.id
+  http_method = aws_api_gateway_method.properties_id_delete.http_method
+  status_code = aws_api_gateway_method_response.properties_id_delete_200.status_code
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.properties_id_delete_lambda]
+}
+
+resource "aws_api_gateway_integration_response" "properties_report_post_200" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_report.id
+  http_method = aws_api_gateway_method.properties_report_post.http_method
+  status_code = aws_api_gateway_method_response.properties_report_post_200.status_code
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.properties_report_post_lambda]
 }
