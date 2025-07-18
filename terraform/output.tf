@@ -41,6 +41,11 @@ output "properties_report_endpoint" {
   value       = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/properties/report"
 }
 
+output "properties_import_endpoint" {
+  description = "Endpoint /properties/import completo"
+  value       = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}/properties/import"
+}
+
 # ===================================
 # COGNITO OUTPUTS
 # ===================================
@@ -90,7 +95,7 @@ output "api_summary" {
     base_url        = "https://${aws_api_gateway_rest_api.main.id}.execute-api.${var.aws_region}.amazonaws.com/${var.environment}"
     authentication  = "AWS Cognito User Pools"
     cors_enabled    = true
-    total_endpoints = 7 # 5 properties endpoints + 1 report endpoint + 1 CORS
+    total_endpoints = 8 # 5 properties endpoints + 1 report endpoint + 1 import endpoint + 1 CORS
     lambda_backend  = data.terraform_remote_state.lambda.outputs.lambda_function_name
   }
 }
