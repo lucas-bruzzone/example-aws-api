@@ -566,3 +566,123 @@ resource "aws_api_gateway_integration_response" "properties_import_post_200" {
 
   depends_on = [aws_api_gateway_integration.properties_import_post_lambda]
 }
+
+# Adicionar ao api_gateway.tf existente
+
+# ===================================
+# RECURSO /properties/{id}/analysis
+# ===================================
+
+resource "aws_api_gateway_resource" "properties_id_analysis" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_resource.properties_id.id
+  path_part   = "analysis"
+}
+
+# ===================================
+# MÉTODO GET /properties/{id}/analysis
+# ===================================
+
+resource "aws_api_gateway_method" "properties_id_analysis_get" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.properties_id_analysis.id
+  http_method   = "GET"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito.id
+
+  request_parameters = {
+    "method.request.path.id" = true
+  }
+}
+
+resource "aws_api_gateway_method" "properties_id_analysis_options" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.properties_id_analysis.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+# ===================================
+# INTEGRAÇÕES
+# ===================================
+
+resource "aws_api_gateway_integration" "properties_id_analysis_get_lambda" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_id_analysis.id
+  http_method = aws_api_gateway_method.properties_id_analysis_get.http_method
+
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = data.terraform_remote_state.lambda.outputs.lambda_invoke_arn
+
+  request_parameters = {
+    "integration.request.path.id" = "method.request.path.id"
+  }
+}
+
+resource "aws_api_gateway_integration" "properties_id_analysis_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_id_analysis.id
+  http_method = aws_api_gateway_method.properties_id_analysis_options.http_method
+  type        = "MOCK"
+
+  request_templates = {
+    "application/json" = jsonencode({
+      statusCode = 200
+    })
+  }
+}
+
+# ===================================
+# RESPONSES
+# ===================================
+
+resource "aws_api_gateway_method_response" "properties_id_analysis_get_200" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_id_analysis.id
+  http_method = aws_api_gateway_method.properties_id_analysis_get.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = true
+  }
+}
+
+resource "aws_api_gateway_method_response" "properties_id_analysis_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_id_analysis.id
+  http_method = aws_api_gateway_method.properties_id_analysis_options.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "properties_id_analysis_get_200" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_id_analysis.id
+  http_method = aws_api_gateway_method.properties_id_analysis_get.http_method
+  status_code = aws_api_gateway_method_response.properties_id_analysis_get_200.status_code
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.properties_id_analysis_get_lambda]
+}
+
+resource "aws_api_gateway_integration_response" "properties_id_analysis_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_id_analysis.id
+  http_method = aws_api_gateway_method.properties_id_analysis_options.http_method
+  status_code = aws_api_gateway_method_response.properties_id_analysis_options.status_code
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+}
