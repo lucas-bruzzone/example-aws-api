@@ -447,3 +447,122 @@ resource "aws_api_gateway_integration_response" "properties_report_post_200" {
 
   depends_on = [aws_api_gateway_integration.properties_report_post_lambda]
 }
+
+
+# ===================================
+# RECURSO /properties/import
+# ===================================
+
+resource "aws_api_gateway_resource" "properties_import" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  parent_id   = aws_api_gateway_resource.properties.id
+  path_part   = "import"
+}
+
+# ===================================
+# MÉTODOS PARA /properties/import
+# ===================================
+
+resource "aws_api_gateway_method" "properties_import_post" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.properties_import.id
+  http_method   = "POST"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.cognito.id
+}
+
+resource "aws_api_gateway_method" "properties_import_options" {
+  rest_api_id   = aws_api_gateway_rest_api.main.id
+  resource_id   = aws_api_gateway_resource.properties_import.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+# ===================================
+# INTEGRAÇÃO LAMBDA PARA /properties/import
+# ===================================
+
+resource "aws_api_gateway_integration" "properties_import_post_lambda" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_import.id
+  http_method = aws_api_gateway_method.properties_import_post.http_method
+
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = data.terraform_remote_state.lambda.outputs.lambda_invoke_arn
+}
+
+# ===================================
+# INTEGRAÇÃO CORS (OPTIONS) PARA /properties/import
+# ===================================
+
+resource "aws_api_gateway_integration" "properties_import_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_import.id
+  http_method = aws_api_gateway_method.properties_import_options.http_method
+  type        = "MOCK"
+
+  request_templates = {
+    "application/json" = jsonencode({
+      statusCode = 200
+    })
+  }
+}
+
+# ===================================
+# METHOD RESPONSES - CORS PARA /properties/import
+# ===================================
+
+resource "aws_api_gateway_method_response" "properties_import_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_import.id
+  http_method = aws_api_gateway_method.properties_import_options.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_method_response" "properties_import_post_200" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_import.id
+  http_method = aws_api_gateway_method.properties_import_post.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = true
+  }
+}
+
+# ===================================
+# INTEGRATION RESPONSES - CORS PARA /properties/import
+# ===================================
+
+resource "aws_api_gateway_integration_response" "properties_import_options" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_import.id
+  http_method = aws_api_gateway_method.properties_import_options.http_method
+  status_code = aws_api_gateway_method_response.properties_import_options.status_code
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'POST,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+}
+
+resource "aws_api_gateway_integration_response" "properties_import_post_200" {
+  rest_api_id = aws_api_gateway_rest_api.main.id
+  resource_id = aws_api_gateway_resource.properties_import.id
+  http_method = aws_api_gateway_method.properties_import_post.http_method
+  status_code = aws_api_gateway_method_response.properties_import_post_200.status_code
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Origin" = "'*'"
+  }
+
+  depends_on = [aws_api_gateway_integration.properties_import_post_lambda]
+}
