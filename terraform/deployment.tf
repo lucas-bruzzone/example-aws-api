@@ -42,6 +42,14 @@ resource "aws_lambda_permission" "api_gateway_properties_import" {
   source_arn    = "${aws_api_gateway_rest_api.main.execution_arn}/*/properties/import"
 }
 
+resource "aws_lambda_permission" "api_gateway_properties_analysis" {
+  statement_id  = "AllowExecutionFromAPIGatewayPropertiesAnalysis"
+  action        = "lambda:InvokeFunction"
+  function_name = data.terraform_remote_state.lambda.outputs.lambda_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.main.execution_arn}/*/properties/*/analysis"
+}
+
 # ===================================
 # DEPLOYMENT & STAGE
 # ===================================
@@ -84,6 +92,14 @@ resource "aws_api_gateway_deployment" "main" {
     aws_api_gateway_method_response.properties_import_options,
     aws_api_gateway_integration_response.properties_import_options,
 
+    # Recursos /properties/{id}/analysis
+    aws_api_gateway_method.properties_id_analysis_get,
+    aws_api_gateway_method.properties_id_analysis_options,
+    aws_api_gateway_integration.properties_id_analysis_get_lambda,
+    aws_api_gateway_integration.properties_id_analysis_options,
+    aws_api_gateway_method_response.properties_id_analysis_options,
+    aws_api_gateway_integration_response.properties_id_analysis_options,
+
     # Method responses CORS para métodos principais
     aws_api_gateway_method_response.properties_get_200,
     aws_api_gateway_method_response.properties_post_200,
@@ -91,6 +107,7 @@ resource "aws_api_gateway_deployment" "main" {
     aws_api_gateway_method_response.properties_id_delete_200,
     aws_api_gateway_method_response.properties_report_post_200,
     aws_api_gateway_method_response.properties_import_post_200,
+    aws_api_gateway_method_response.properties_id_analysis_get_200,
 
     # Integration responses CORS para métodos principais
     aws_api_gateway_integration_response.properties_get_200,
@@ -99,6 +116,7 @@ resource "aws_api_gateway_deployment" "main" {
     aws_api_gateway_integration_response.properties_id_delete_200,
     aws_api_gateway_integration_response.properties_report_post_200,
     aws_api_gateway_integration_response.properties_import_post_200,
+    aws_api_gateway_integration_response.properties_id_analysis_get_200,
 
     # Google Identity Provider
     aws_cognito_identity_provider.google,
@@ -140,6 +158,13 @@ resource "aws_api_gateway_deployment" "main" {
       aws_api_gateway_integration.properties_import_post_lambda.id,
       aws_api_gateway_integration.properties_import_options.id,
 
+      # Recursos /properties/{id}/analysis
+      aws_api_gateway_resource.properties_id_analysis.id,
+      aws_api_gateway_method.properties_id_analysis_get.id,
+      aws_api_gateway_method.properties_id_analysis_options.id,
+      aws_api_gateway_integration.properties_id_analysis_get_lambda.id,
+      aws_api_gateway_integration.properties_id_analysis_options.id,
+
       # CORS responses
       aws_api_gateway_method_response.properties_get_200.id,
       aws_api_gateway_method_response.properties_post_200.id,
@@ -147,12 +172,14 @@ resource "aws_api_gateway_deployment" "main" {
       aws_api_gateway_method_response.properties_id_delete_200.id,
       aws_api_gateway_method_response.properties_report_post_200.id,
       aws_api_gateway_method_response.properties_import_post_200.id,
+      aws_api_gateway_method_response.properties_id_analysis_get_200.id,
       aws_api_gateway_integration_response.properties_get_200.id,
       aws_api_gateway_integration_response.properties_post_200.id,
       aws_api_gateway_integration_response.properties_id_put_200.id,
       aws_api_gateway_integration_response.properties_id_delete_200.id,
       aws_api_gateway_integration_response.properties_report_post_200.id,
       aws_api_gateway_integration_response.properties_import_post_200.id,
+      aws_api_gateway_integration_response.properties_id_analysis_get_200.id,
 
       # Identity Provider
       aws_cognito_identity_provider.google.id,
